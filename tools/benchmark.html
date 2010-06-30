@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+	<head>
+		<script src="../md5-min.js"></script>
+		<style>
+			body {
+				font-family: Verdana, sans-serif;
+			}
+		</style>
+	</head>
+	<body>
+		<p>
+		This benchmark helps to find a suitable value for the speed option of the JSidle packer.<br>
+		Open this page in the target browser to benchmark the javascript execution speed.
+		</p>
+		<script>
+			test = "abc";
+			var rounds = 0;
+			var start = new Date().getTime();
+			while ((new Date().getTime()) - start < 3000) {
+				for (i = 0; i < 1000; i++) {
+					md5 = hex_md5(test);
+				}
+				var end = new Date().getTime();
+				var time = end - start;
+				rounds += 1000;
+			}
+			// correction based on experience, as the benchmark does not
+			// exactly simulate the routine used in the packer
+			rounds = Math.floor(rounds * 0.6);
+			document.write('Execution time (' + rounds + ' rounds): ' + time / 1000 + 's<br>');
+			document.write('Option :speed => ' + Math.floor((rounds / time) * 1000) + '<br>');
+		</script>
+	</body>
+</html>

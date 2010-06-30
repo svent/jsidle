@@ -1,0 +1,33 @@
+h1. JSidle Javascript Packer
+
+The concept of the JSidle packer is described in the Hack in the Box magazine, Volume 1, Issue 3.
+
+h2. Usage
+
+<pre>
+./jsidle [ -i file ] [ -o file ] [ opt1=val1 opt2=val2 ... ]
+options: delay=<seconds>
+         include_md5lib=true|false
+         mode=web|pdf
+         speed=<int>
+         static=true|false
+         strip_comments=true|false
+</pre>
+
+h2. Examples
+
+Asssuming tools/benchmark.html showed a speed of 20000 and you want the delay to be 5 seconds in the target browser:
+<pre>
+./jsidle -i exploit.js -o packed.js speed=20000 delay=5
+</pre>
+
+Using the query string feature (the query string key will be printed to STDERR):
+<pre>
+echo "alert('owned')" | ./jsidle -o exploit.js speed=20000 delay=5 static=false
+</pre>
+
+Packing Javascript for usage in PDF files:
+<pre>
+./jsidle -i pdf-exploit.js -o packed.js mode=pdf speed=300
+</pre>
+

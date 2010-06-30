@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require 'lib/jsidle'
+
+if ARGV.length == 1 || ARGV[0] =~ /-h|--help/ then
+puts %Q!Usage: #{$0} [ -i file ] [ -o file ] [ opt1=val1 opt2=val2 ... ]
+       options:	delay=<seconds>
+                include_md5lib=true|false
+                mode=web|pdf
+                speed=<int>
+                static=true|false
+                strip_comments=true|false
+!
+exit
+end
+
+in_file = STDIN
+out_file = STDOUT
+while ARGV.length >= 2 && ARGV[0][0, 1] == "-"
+	opt = ARGV.shift
+	in_file = File.open(ARGV.shift) if opt == "-i"
+	out_file = File.new(ARGV.shift, "wb") if opt == "-o"
+end
+
+@opts = {}
+
+while arg = ARGV.shift
+	opt, val = arg.split('=')
+	if ["true", "false"].include?(val)
+		val = eval(val)
+	elsif ["web", "pdf"].include?(val)
+		val = eval(":#{val}")
+	elsif val =~ /^\d+$/
+		val = val.to_i
+	else
+		puts "illegal argument '#{val}' for option '#{opt}'"
+		exit
+	end
+	@opts[opt.to_sym] = val
+end
+
+code = in_file.read
+packer = JSidle.new(code, @opts)
+
+qskey = packer.qstring_key
+res = packer.pack()
+
+puts "query string key: " + qskey if @opts[:static] == false
+
+out_file.puts(res[:js_encoded])
+
