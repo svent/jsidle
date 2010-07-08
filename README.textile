@@ -1,6 +1,8 @@
 h1. JSidle Javascript Packer
 
 The concept of the JSidle packer is described in the Hack in the Box magazine, Volume 1, Issue 3.
+Get it here: http://magazine.hitb.org
+
 
 h2. Usage
 

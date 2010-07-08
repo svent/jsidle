@@ -1,4 +1,9 @@
 #!/usr/bin/env ruby
+#
+# JSidle Javascript packer 
+# Author: Sven Taute
+# Version: 1.0
+# Web: http://github.com/svent/jsidle
 
 require 'lib/jsidle'
 

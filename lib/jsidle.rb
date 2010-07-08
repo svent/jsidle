@@ -1,10 +1,15 @@
 #!/usr/bin/env ruby
+#
+# JSidle Javascript packer 
+# Author: Sven Taute
+# Version: 1.0
+# Web: http://github.com/svent/jsidle
 
 require 'digest/md5'
 
 class JSidle
 
-	MD5_LIB = "md5-min.js"
+	MD5_LIB = File.join(File.expand_path(File.dirname(__FILE__)), 'md5-min.js')
 	MD5_FUNC = "hex_md5"
 	GUESS_KEY_COUNT = 5
 	# english language letter frequency
@@ -49,7 +54,7 @@ class JSidle
 			:delay => 2,
 			:include_md5lib => true,
 			:mode => :web,
-			:speed => 5000,
+			:speed => 500,
 			:static => true, 
 			:strip_comments => true,
 		}
@@ -163,6 +168,7 @@ class JSidle
 		js_encoded = obfuscate(js_encoded)
 		if @opts[:include_md5lib] then
 			md5code = File.open(MD5_LIB).read
+			md5code = strip_comments(md5code)
 			js_encoded = md5code + "\r\n" + js_encoded;
 		end
 
