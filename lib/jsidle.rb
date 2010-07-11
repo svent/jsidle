@@ -93,12 +93,10 @@ class JSidle
 				js.gsub!(/\b#{arg}\b/, symbol)
 		end
 		
-		if @opts[:mode] != :pdf then
-			method_calls = js.scan(/((?:[A-Za-z0-9]+\.)*[A-Za-z0-9]+)\.([a-z][A-Za-z0-9_]*)/)
-			method_calls.each do |mc|
-					obj, call = mc
-					js.gsub!(/\b#{obj}\.#{call}\b/, "#{obj}[#{frag_str(call)}]")
-			end
+		method_calls = js.scan(/((?:[A-Za-z0-9]+\.)*[A-Za-z0-9]+)\.([a-z][A-Za-z0-9_]*)/)
+		method_calls.each do |mc|
+				obj, call = mc
+				js.gsub!(/\b#{obj}\.#{call}\b/, "#{obj}[#{frag_str(call)}]")
 		end
 
 		return js
@@ -120,7 +118,7 @@ class JSidle
 
 		encoded = encoded.unpack("H*")[0]
 
-		eval_call = @opts[:mode] == :pdf ? "eval" : "window.eval"
+		eval_call = @opts[:mode] == :pdf ? "app.eval" : "window.eval"
 
 		js_encoded = <<-ENDJS
 		// prevent known ciphertext, otherwise the xor-key could easily be calculated
@@ -178,6 +176,10 @@ class JSidle
 		end
 
 		return res
+	end
+
+	def obfuscate_string(str, t = 0.85)
+		frag_str(str, t)
 	end
 
 protected
