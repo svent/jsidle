@@ -2,7 +2,7 @@ Index: lib/rex/exploitation/jsidle.rb
 ===================================================================
 --- lib/rex/exploitation/jsidle.rb	(revision 0)
 +++ lib/rex/exploitation/jsidle.rb	(revision 0)
-@@ -0,0 +1,281 @@
+@@ -0,0 +1,282 @@
 +#
 +# JSidle Javascript packer 
 +# Author: Sven Taute
@@ -130,7 +130,7 @@ Index: lib/rex/exploitation/jsidle.rb
 +		js_encoded = <<-ENDJS
 +		// prevent known ciphertext, otherwise the xor-key could easily be calculated
 +		var dummy = '#{rand_string(20 + rand(30))}';
-+		var exploit = '#{encoded}';
++		var exploit = '!!!ENCODEDEXPLOIT!!!';
 +		var encoded = '';
 +		for (i = 0;i<exploit.length;i+=2) {
 +			encoded += String.fromCharCode(parseInt(exploit.substring(i, i+2), 16));
@@ -171,6 +171,7 @@ Index: lib/rex/exploitation/jsidle.rb
 +		ENDJS
 +
 +		js_encoded = obfuscate(js_encoded)
++		js_encoded.gsub!('!!!ENCODEDEXPLOIT!!!', encoded)
 +		if @opts[:include_md5lib] then
 +			md5code = File.open(MD5_LIB).read
 +			md5code = strip_comments(md5code)

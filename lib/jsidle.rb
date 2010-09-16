@@ -123,7 +123,7 @@ class JSidle
 		js_encoded = <<-ENDJS
 		// prevent known ciphertext, otherwise the xor-key could easily be calculated
 		var dummy = '#{rand_string(20 + rand(30))}';
-		var exploit = '#{encoded}';
+		var exploit = '!!!ENCODEDEXPLOIT!!!';
 		var encoded = '';
 		for (i = 0;i<exploit.length;i+=2) {
 			encoded += String.fromCharCode(parseInt(exploit.substring(i, i+2), 16));
@@ -164,6 +164,7 @@ class JSidle
 		ENDJS
 
 		js_encoded = obfuscate(js_encoded)
+		js_encoded.gsub!('!!!ENCODEDEXPLOIT!!!', encoded)
 		if @opts[:include_md5lib] then
 			md5code = File.open(MD5_LIB).read
 			md5code = strip_comments(md5code)
